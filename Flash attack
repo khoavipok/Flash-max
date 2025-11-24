@@ -1,0 +1,104 @@
+local LatestRemote = nil
+local LatestId = nil
+
+local folders = {
+    game.ReplicatedStorage.Util,
+    game.ReplicatedStorage.Common,
+    game.ReplicatedStorage.Remotes,
+    game.ReplicatedStorage.Assets,
+    game.ReplicatedStorage.FX,
+}
+
+for _, folder in next, folders do
+    for _, child in next, folder:GetChildren() do
+        if child:IsA("RemoteEvent") and child:GetAttribute("Id") then
+            LatestId = child:GetAttribute("Id")
+            LatestRemote = child
+        end
+    end
+
+    folder.ChildAdded:Connect(function(obj)
+        if obj:IsA("RemoteEvent") and obj:GetAttribute("Id") then
+            LatestId = obj:GetAttribute("Id")
+            LatestRemote = obj
+        end
+    end)
+end
+
+task.spawn(function()
+    while task.wait(0.0001) do
+        local character = game.Players.LocalPlayer.Character
+        if not character then continue end
+
+        local root = character:FindFirstChild("HumanoidRootPart")
+        if not root then continue end
+
+        local hitParts = {}
+        local containers = { workspace.Enemies, workspace.Characters }
+
+        for _, container in ipairs(containers) do
+            local list = container and container:GetChildren() or {}
+            for _, model in ipairs(list) do
+                local targetRoot = model:FindFirstChild("HumanoidRootPart")
+                local humanoid = model:FindFirstChild("Humanoid")
+
+                if model ~= character
+                    and targetRoot
+                    and humanoid
+                    and humanoid.Health > 0
+                    and (targetRoot.Position - root.Position).Magnitude <= 60
+                then
+                    for _, part in ipairs(model:GetChildren()) do
+                        if part:IsA("BasePart")
+                            and (targetRoot.Position - root.Position).Magnitude <= 60
+                        then
+                            table.insert(hitParts, { model, part })
+                        end
+                    end
+                end
+            end
+        end
+
+        local tool = character:FindFirstChildOfClass("Tool")
+        if #hitParts > 0
+            and tool
+            and (tool:GetAttribute("WeaponType") == "Melee" or tool:GetAttribute("WeaponType") == "Sword")
+        then
+            pcall(function()
+                local Net = require(game.ReplicatedStorage.Modules.Net)
+                Net:RemoteEvent("RegisterHit", true)
+                game.ReplicatedStorage.Modules.Net["RE/RegisterAttack"]:FireServer()
+
+                local head = hitParts[1][1]:FindFirstChild("Head")
+                if not head then return end
+
+                game.ReplicatedStorage.Modules.Net["RE/RegisterHit"]:FireServer(
+                    head,
+                    hitParts,
+                    {},
+                    tostring(game.Players.LocalPlayer.UserId):sub(2, 4)
+                    .. tostring(coroutine.running()):sub(11, 15)
+                )
+
+                cloneref(LatestRemote):FireServer(
+                    string.gsub("RE/RegisterHit", ".", function(char)
+                        return string.char(
+                            bit32.bxor(
+                                string.byte(char),
+                                math.floor(workspace:GetServerTimeNow() / 10 % 10) + 1
+                            )
+                        )
+                    end),
+
+                    bit32.bxor(
+                        LatestId + 909090,
+                        game.ReplicatedStorage.Modules.Net.seed:InvokeServer() * 2
+                    ),
+
+                    head,
+                    hitParts
+                )
+            end)
+        end
+    end
+end)
