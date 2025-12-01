@@ -29,11 +29,11 @@ local Config = {
     AttackMobs = true,
     AttackPlayers = true,
     AttackCooldown = 0.01,
-    ComboResetTime = 0.02,
+    ComboResetTime = 0.01,
     MaxCombo = 3,
     HitboxLimbs = {"RightLowerArm", "RightUpperArm", "LeftLowerArm", "LeftUpperArm", "RightHand", "LeftHand"},
     AutoClickEnabled = true,
-    OptimizedScanInterval = 0.05 -- Giảm tần suất quét
+    OptimizedScanInterval = 0.01 -- Giảm tần suất quét
 }
 
 -- FastAttack Class
