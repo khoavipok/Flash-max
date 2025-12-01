@@ -25,15 +25,15 @@ local cachedBladeHits = {}
 local lastAttackTime = 0
 
 local Config = {
-    AttackDistance = 65,
+    AttackDistance = 150,
     AttackMobs = true,
     AttackPlayers = true,
-    AttackCooldown = 0.2,
-    ComboResetTime = 0.3,
-    MaxCombo = 4,
+    AttackCooldown = 0.01,
+    ComboResetTime = 0.02,
+    MaxCombo = 3,
     HitboxLimbs = {"RightLowerArm", "RightUpperArm", "LeftLowerArm", "LeftUpperArm", "RightHand", "LeftHand"},
     AutoClickEnabled = true,
-    OptimizedScanInterval = 0.15 -- Giảm tần suất quét
+    OptimizedScanInterval = 0.05 -- Giảm tần suất quét
 }
 
 -- FastAttack Class
